@@ -1,0 +1,36 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Especialistas | Portal{% endblock %}
+{% block page_title %}Especialistas{% endblock %}
+
+{% block content %}
+  <div style="display:grid; grid-template-columns: repeat(4, minmax(240px, 1fr)); gap:14px;">
+    {% for d in doctores %}
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div style="background:#dfe8ef; height:140px; display:flex; align-items:center; justify-content:center;">
+          {% if d.foto %}
+            <img src="{{ d.foto.url }}" alt="{{ d.user.get_full_name|default:d.user.username }}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:6px solid #0b4f5f;"/>
+          {% else %}
+            <div style="width:96px;height:96px;border-radius:50%;background:#0b4f5f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;">
+              {{ d.user.first_name|default:d.user.username|slice:":1"|upper }}{{ d.user.last_name|slice:":1"|upper }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div style="padding:16px;">
+          <div style="font-weight:900; font-size:18px;">{{ d.user.get_full_name|default:d.user.username }}</div>
+          <div style="font-weight:900; color:var(--primary); margin-top:6px; text-transform:uppercase; font-size:12px; letter-spacing:.06em;">{{ d.especialidad|default:"Especialista" }}</div>
+          <div class="muted" style="margin-top:10px; font-size:14px;">{{ d.biografia|default:""|truncatechars:120 }}</div>
+          <div class="muted" style="margin-top:10px; font-size:13px;">{{ d.experiencia_anios }} años de experiencia</div>
+
+          <div style="display:flex; gap:10px; margin-top:14px;">
+            <a class="btn primary" href="{% url 'portal_profile' d.id %}">Ver Perfil</a>
+            <a class="btn" href="{% url 'portal_chat_with' d.user.id %}">Chat</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="muted">Aún no hay doctores activos. (Admin: crea doctores en RH o en /admin/)</p>
+    {% endfor %}
+  </div>
+{% endblock %}

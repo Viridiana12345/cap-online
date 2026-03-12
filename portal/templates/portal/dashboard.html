@@ -1,0 +1,335 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Inicio | Portal{% endblock %}
+{% block page_title %}Inicio{% endblock %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap');
+
+  /* ── HERO ── */
+  .dash-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 60%, var(--accent) 100%);
+    border-radius: var(--radius);
+    padding: 34px 40px;
+    color: #fff;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    animation: dashUp .5s ease both;
+  }
+  .dash-hero::before {
+    content: ''; position: absolute; top: -70px; right: -70px;
+    width: 240px; height: 240px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); pointer-events: none;
+  }
+  .dash-hero::after {
+    content: ''; position: absolute; bottom: -40px; right: 160px;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: rgba(255,255,255,0.04); pointer-events: none;
+  }
+  .dash-hero-left  { position: relative; z-index: 2; flex: 1; }
+  .dash-hero-right { position: relative; z-index: 2; flex-shrink: 0; }
+
+  .dash-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+  }
+  .dash-hero h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px; font-weight: 700;
+    line-height: 1.2; margin-bottom: 8px;
+    color: #fff; letter-spacing: -.3px;
+  }
+  .dash-hero-sub {
+    font-size: 13.5px; color: rgba(255,255,255,0.75);
+    line-height: 1.65; max-width: 420px;
+  }
+  .dash-hero-quote {
+    font-family: 'Playfair Display', serif;
+    font-style: italic; font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    border-left: 2px solid rgba(255,255,255,0.3);
+    padding: 8px 14px;
+    border-radius: 0 8px 8px 0;
+    background: rgba(255,255,255,0.08);
+    margin-top: 16px; max-width: 400px;
+  }
+  .dash-hero-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px; padding: 5px 13px;
+    font-size: 11.5px; font-weight: 500;
+    margin-top: 16px;
+  }
+  .dash-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #6EE7B7; animation: dashPulse 2.2s infinite;
+  }
+  .dash-role-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 100px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .dash-role-badge.doctor  { background: rgba(255,255,255,0.18); color: #fff; }
+  .dash-role-badge.patient { background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.9); }
+
+  .dash-date-box {
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 14px; padding: 14px 22px; text-align: center;
+  }
+  .dash-date-day   { font-family:'Playfair Display',serif; font-size:34px; font-weight:700; line-height:1; }
+  .dash-date-label { font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.45); margin-top:5px; }
+
+  /* ── STRIP (afirmación / consejo) ── */
+  .dash-strip {
+    border-radius: var(--radius);
+    padding: 15px 22px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.04);
+    margin-top: 14px;
+    animation: dashUp .5s ease .1s both;
+  }
+  .dash-strip.patient-strip {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+  }
+  .dash-strip.doctor-strip {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--secondary);
+  }
+  .dash-strip-icon  { font-size: 24px; flex-shrink: 0; }
+  .dash-strip-label {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px;
+    text-transform: uppercase; margin-bottom: 3px;
+  }
+  .patient-strip .dash-strip-label { color: var(--accent); }
+  .doctor-strip  .dash-strip-label { color: var(--secondary); }
+  .dash-strip-text {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: 14px; color: var(--text); line-height: 1.55;
+  }
+
+  /* ── STATS ── */
+  .dash-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px; margin-top: 14px;
+    animation: dashUp .5s ease .18s both;
+  }
+  .dash-stat {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px 18px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.04);
+    display: flex; flex-direction: column; gap: 12px;
+    position: relative; overflow: hidden;
+    transition: transform .25s ease, box-shadow .25s ease;
+    cursor: default;
+  }
+  .dash-stat:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.09); }
+  .dash-stat::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    background: var(--ds-c, var(--primary));
+    border-radius: 0 0 var(--radius) var(--radius);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .3s ease;
+  }
+  .dash-stat:hover::after { transform: scaleX(1); }
+
+  .ds1 { --ds-c: var(--primary); }
+  .ds2 { --ds-c: var(--secondary); }
+  .ds3 { --ds-c: var(--accent); }
+  .ds4 { --ds-c: #61A8A8; }
+
+  .dash-stat-icon {
+    width: 40px; height: 40px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dash-stat-icon svg { width: 19px; height: 19px; }
+  .ds1 .dash-stat-icon { background: #e6f0f3; color: var(--primary); }
+  .ds2 .dash-stat-icon { background: #FEF3C7; color: #B45309; }
+  .ds3 .dash-stat-icon { background: #D1FAE5; color: #059669; }
+  .ds4 .dash-stat-icon { background: #E0F2FE; color: #0369A1; }
+
+  .dash-stat-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .dash-stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px; font-weight: 700;
+    line-height: 1; letter-spacing: -1.5px; color: var(--text);
+  }
+  .dash-stat-hint { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes dashUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes dashPulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.5; transform:scale(1.4); }
+  }
+</style>
+
+<!-- ══════════════════════════════════════
+     HERO — cambia según el rol
+══════════════════════════════════════ -->
+<div class="dash-hero">
+  <div class="dash-hero-left">
+
+    {% if is_doctor %}
+      <div class="dash-role-badge doctor">
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        Médico / Terapeuta
+      </div>
+      <div class="dash-eyebrow">Panel Clínico</div>
+      <h2>Bienvenido, Dr. {{ request.user.first_name|default:request.user.username }}</h2>
+      <div class="dash-hero-sub">Aquí tienes un resumen de tus pacientes, citas pendientes y mensajes del día.</div>
+      <div class="dash-hero-quote">"Cada sesión es una oportunidad de hacer una diferencia real en la vida de alguien."</div>
+
+    {% else %}
+      <div class="dash-role-badge patient">
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        Paciente
+      </div>
+      <div class="dash-eyebrow">Portal del Paciente</div>
+      <h2>Bienvenido, {{ request.user.first_name|default:request.user.username }}</h2>
+      <div class="dash-hero-sub">Aquí verás tus notificaciones, mensajes, citas y solicitudes de llamada en tiempo real.</div>
+      <div class="dash-hero-quote">"El hecho de que estés aquí ya es un acto de valentía. Estás en el lugar correcto."</div>
+    {% endif %}
+
+    <div class="dash-hero-pill">
+      <div class="dash-dot"></div>
+      Sistema activo y en línea
+    </div>
+  </div>
+
+  <div class="dash-hero-right">
+    <div class="dash-date-box">
+      <div class="dash-date-day" id="dash-day">--</div>
+      <div class="dash-date-label" id="dash-month">--- · ----</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     STRIP — afirmación o consejo clínico
+══════════════════════════════════════ -->
+{% if is_doctor %}
+  <div class="dash-strip doctor-strip">
+    <div class="dash-strip-icon">🩺</div>
+    <div>
+      <div class="dash-strip-label">Recordatorio profesional</div>
+      <div class="dash-strip-text">"Tu presencia y escucha activa son la herramienta terapéutica más poderosa."</div>
+    </div>
+  </div>
+{% else %}
+  <div class="dash-strip patient-strip">
+    <div class="dash-strip-icon">🌿</div>
+    <div>
+      <div class="dash-strip-label">Afirmación del día</div>
+      <div class="dash-strip-text">"Soy suficiente. Mi bienestar importa y merezco sanar, un día a la vez."</div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- ══════════════════════════════════════
+     STATS — diferentes según el rol
+══════════════════════════════════════ -->
+<div class="dash-stats">
+
+  <!-- Mensajes sin leer — igual para ambos -->
+  <div class="dash-stat ds1">
+    <div class="dash-stat-icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="dash-stat-label">Mensajes sin leer</div>
+      <div class="dash-stat-value">{{ unread_messages_count }}</div>
+      <div class="dash-stat-hint">
+        {% if is_doctor %}de tus pacientes{% else %}en tu bandeja{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Llamadas — label diferente -->
+  <div class="dash-stat ds2">
+    <div class="dash-stat-icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="dash-stat-label">
+        {% if is_doctor %}Llamadas por atender{% else %}Solicitudes de llamada{% endif %}
+      </div>
+      <div class="dash-stat-value">{{ pending_calls_count }}</div>
+      <div class="dash-stat-hint">
+        {% if is_doctor %}requieren tu aprobación{% else %}pendientes{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Citas — label diferente -->
+  <div class="dash-stat ds3">
+    <div class="dash-stat-icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="dash-stat-label">
+        {% if is_doctor %}Citas por confirmar{% else %}Citas pendientes{% endif %}
+      </div>
+      <div class="dash-stat-value">{{ pending_appts_count }}</div>
+      <div class="dash-stat-hint">
+        {% if is_doctor %}esperan tu confirmación{% else %}en tu agenda{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Actividad total — igual para ambos -->
+  <div class="dash-stat ds4">
+    <div class="dash-stat-icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="dash-stat-label">Actividad total</div>
+      <div class="dash-stat-value">{{ notifications_count }}</div>
+      <div class="dash-stat-hint">
+        {% if is_doctor %}notificaciones activas{% else %}este período{% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  (function(){
+    const d = new Date();
+    document.getElementById('dash-day').textContent = String(d.getDate()).padStart(2,'0');
+    const m = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    document.getElementById('dash-month').textContent = m[d.getMonth()] + ' · ' + d.getFullYear();
+  })();
+</script>
+
+{% endblock %}

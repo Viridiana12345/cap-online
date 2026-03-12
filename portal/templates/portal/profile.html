@@ -1,0 +1,37 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Perfil | Portal{% endblock %}
+{% block page_title %}Perfil{% endblock %}
+
+{% block content %}
+  <div class="card" style="display:flex; gap:18px; align-items:center;">
+    {% if doctor.foto %}
+      <img src="{{ doctor.foto.url }}" alt="{{ doctor.user.get_full_name|default:doctor.user.username }}" style="width:110px;height:110px;border-radius:16px;object-fit:cover;border:1px solid var(--border);"/>
+    {% else %}
+      <div style="width:110px;height:110px;border-radius:16px;background:#0b4f5f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px;">
+        {{ doctor.user.first_name|default:doctor.user.username|slice:":1"|upper }}{{ doctor.user.last_name|slice:":1"|upper }}
+      </div>
+    {% endif %}
+
+    <div style="flex:1;">
+      <div style="font-weight:900; font-size:26px;">{{ doctor.user.get_full_name|default:doctor.user.username }}</div>
+      <div class="muted" style="margin-top:4px;">{{ doctor.especialidad|default:"Especialista" }}</div>
+      <div class="muted" style="margin-top:6px;">{{ doctor.experiencia_anios }} años de experiencia{% if doctor.cedula %} · Cédula: {{ doctor.cedula }}{% endif %}</div>
+
+      <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+        <a class="btn primary" href="{% url 'portal_chat_with' doctor.user.id %}">💬 Iniciar chat</a>
+        <a class="btn" href="{% url 'portal_calls' %}">📞 Solicitar llamada</a>
+        <a class="btn" href="{% url 'portal_specialists' %}">← Volver</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h3 style="margin-bottom:10px;">Sobre el especialista</h3>
+    {% if doctor.biografia %}
+      <p style="line-height:1.6;">{{ doctor.biografia }}</p>
+    {% else %}
+      <p class="muted">Aún no hay biografía registrada.</p>
+    {% endif %}
+  </div>
+{% endblock %}

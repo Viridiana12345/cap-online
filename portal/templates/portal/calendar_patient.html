@@ -1,0 +1,283 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Calendario Paciente | Portal{% endblock %}
+{% block page_title %}Mis Citas{% endblock %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap');
+
+  /* ── FORM BLOCK ── */
+  .citas-form-block {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 2px 14px rgba(0,0,0,.04);
+    margin-bottom: 16px;
+    animation: citasUp .45s ease both;
+  }
+  .citas-form-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 60%, var(--accent) 100%);
+    padding: 22px 28px;
+    display: flex; align-items: center; gap: 14px;
+    position: relative; overflow: hidden;
+  }
+  .citas-form-header::before {
+    content: ''; position: absolute; top: -50px; right: -50px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); pointer-events: none;
+  }
+  .citas-form-header-icon {
+    width: 44px; height: 44px; border-radius: 13px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.22);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0; position: relative; z-index: 2;
+  }
+  .citas-form-header-body { position: relative; z-index: 2; }
+  .citas-form-eyebrow {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 3px;
+  }
+  .citas-form-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -.2px;
+  }
+
+  .citas-form-body {
+    padding: 24px 28px;
+  }
+  .citas-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: end;
+  }
+  .citas-field label {
+    display: block;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 7px;
+  }
+  .citas-field select,
+  .citas-field input,
+  .citas-field textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    font-size: 13.5px;
+    background: #f8fafc;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+  }
+  .citas-field select:focus,
+  .citas-field input:focus,
+  .citas-field textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0,77,97,.10);
+    background: #fff;
+  }
+  .citas-form-footer {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding-top: 4px;
+  }
+  .citas-pending-note {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #FEF3C7; border: 1px solid #FDE68A;
+    border-radius: 100px; padding: 5px 13px;
+    font-size: 11.5px; color: #92400E; font-weight: 500;
+  }
+
+  /* ── HISTORIAL BLOCK ── */
+  .citas-hist-block {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.04);
+    animation: citasUp .45s ease .1s both;
+  }
+  .citas-hist-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px; padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .citas-hist-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #e6f0f3;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .citas-hist-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px; font-weight: 700;
+    color: var(--text); letter-spacing: -.2px;
+  }
+
+  /* ── APPOINTMENT ITEM ── */
+  .citas-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .citas-item:last-child { margin-bottom: 0; }
+  .citas-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+
+  .citas-item-bar { height: 3px; }
+  .citas-item-bar.pending  { background: linear-gradient(90deg, #B45309, #F59E0B); }
+  .citas-item-bar.approved { background: linear-gradient(90deg, #059669, #6EE7B7); }
+  .citas-item-bar.rejected { background: linear-gradient(90deg, #DC2626, #F87171); }
+
+  .citas-item-body {
+    padding: 14px 18px;
+    display: flex; justify-content: space-between;
+    align-items: flex-start; gap: 14px; flex-wrap: wrap;
+  }
+  .citas-item-left { flex: 1; }
+  .citas-item-datetime {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--text); letter-spacing: -.1px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .citas-item-datetime svg { width: 14px; height: 14px; color: var(--primary); flex-shrink: 0; }
+  .citas-item-doctor {
+    font-size: 12px; color: var(--muted);
+    margin-top: 5px; display: flex; align-items: center; gap: 5px;
+  }
+  .citas-item-doctor svg { width: 12px; height: 12px; }
+  .citas-item-notes {
+    font-family: 'Playfair Display', serif;
+    font-style: italic; font-size: 13px;
+    color: var(--text); line-height: 1.55;
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px dashed var(--border);
+  }
+
+  .citas-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 100px;
+    font-size: 10.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .9px; flex-shrink: 0;
+  }
+  .chip-pending  { background: #FEF3C7; color: #92400E; }
+  .chip-approved { background: #D1FAE5; color: #065F46; }
+  .chip-rejected { background: #FEE2E2; color: #991B1B; }
+
+  /* Empty state */
+  .citas-empty {
+    padding: 36px 0; text-align: center;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 8px; color: var(--muted);
+  }
+  .citas-empty-icon { font-size: 32px; opacity: .4; }
+  .citas-empty-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic; font-size: 14px; color: var(--muted);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes citasUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<!-- ══ FORMULARIO ══ -->
+<div class="citas-form-block">
+  <div class="citas-form-header">
+    <div class="citas-form-header-icon">📋</div>
+    <div class="citas-form-header-body">
+      <div class="citas-form-eyebrow">Portal del Paciente</div>
+      <div class="citas-form-title">Solicitar cita</div>
+    </div>
+  </div>
+
+  <div class="citas-form-body">
+    <form method="post" action="{% url 'appointment_create' %}" class="citas-form-grid">
+      {% csrf_token %}
+
+      <div class="citas-field">
+        <label>Doctor</label>
+        {{ form.doctor }}
+      </div>
+
+      <div class="citas-field">
+        <label>Notas</label>
+        {{ form.notes }}
+      </div>
+
+      <div class="citas-field">
+        <label>Inicio</label>
+        {{ form.start_at }}
+      </div>
+
+      <div class="citas-field">
+        <label>Fin</label>
+        {{ form.end_at }}
+      </div>
+
+      <div class="citas-form-footer">
+        <button class="btn primary" type="submit">Enviar solicitud</button>
+        <span class="citas-pending-note">
+          ⏳ La cita queda <b style="margin-left:3px;">pendiente</b> hasta que el doctor la apruebe.
+        </span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ HISTORIAL ══ -->
+<div class="citas-hist-block">
+  <div class="citas-hist-head">
+    <div class="citas-hist-icon">🗓</div>
+    <div class="citas-hist-title">Historial de citas</div>
+  </div>
+
+  {% for a in appointments %}
+    <div class="citas-item">
+      <div class="citas-item-bar {{ a.status }}"></div>
+      <div class="citas-item-body">
+        <div class="citas-item-left">
+
+          <div class="citas-item-datetime">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            {{ a.start_at|date:"d M Y · H:i" }} – {{ a.end_at|date:"H:i" }}
+          </div>
+
+          <div class="citas-item-doctor">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            Doctor: {{ a.doctor.get_full_name|default:a.doctor.username }}
+          </div>
+
+          {% if a.notes %}
+            <div class="citas-item-notes">{{ a.notes }}</div>
+          {% endif %}
+        </div>
+
+        <span class="citas-chip
+          {% if a.status == 'pending' %}chip-pending
+          {% elif a.status == 'approved' %}chip-approved
+          {% else %}chip-rejected{% endif %}">
+          {{ a.get_status_display }}
+        </span>
+      </div>
+    </div>
+  {% empty %}
+    <div class="citas-empty">
+      <div class="citas-empty-icon">📆</div>
+      <div class="citas-empty-text">Aún no tienes citas agendadas.</div>
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

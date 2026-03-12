@@ -1,0 +1,70 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Configuración | Portal{% endblock %}
+{% block page_title %}Configuración{% endblock %}
+
+{% block content %}
+  <div class="card" style="margin-bottom:14px;">
+    <h3 style="margin-bottom:8px;">Perfil</h3>
+    <p class="muted">Ajustes básicos. (No hay opciones avanzadas aquí a propósito 😌)</p>
+  </div>
+
+  <div class="card">
+    <form method="post" enctype="multipart/form-data" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;">
+      {% csrf_token %}
+
+      <div style="grid-column:1 / -1;">
+        <label style="display:block;font-weight:900;margin-bottom:6px;">Nombre completo</label>
+        <input name="full_name" value="{{ full_name }}" placeholder="Tu nombre" />
+      </div>
+
+      <div>
+        <label style="display:block;font-weight:900;margin-bottom:6px;">Teléfono</label>
+        {{ patient_form.telefono }}
+      </div>
+
+      <div>
+        <label style="display:block;font-weight:900;margin-bottom:6px;">Biografía</label>
+        {{ patient_form.biografia }}
+      </div>
+
+      {% if is_doctor and doctor_form %}
+        <div style="grid-column:1 / -1;border-top:1px solid var(--border);padding-top:12px;margin-top:6px;">
+          <h3 style="margin-bottom:10px;">Datos del Doctor</h3>
+        </div>
+
+        <div>
+          <label style="display:block;font-weight:900;margin-bottom:6px;">Especialidad</label>
+          {{ doctor_form.especialidad }}
+        </div>
+        <div>
+          <label style="display:block;font-weight:900;margin-bottom:6px;">Matrícula / Cédula</label>
+          {{ doctor_form.cedula }}
+        </div>
+        <div>
+          <label style="display:block;font-weight:900;margin-bottom:6px;">Años de experiencia</label>
+          {{ doctor_form.experiencia_anios }}
+        </div>
+        <div>
+          <label style="display:block;font-weight:900;margin-bottom:6px;">Foto</label>
+          {{ doctor_form.foto }}
+        </div>
+        <div style="grid-column:1 / -1;">
+          <label style="display:block;font-weight:900;margin-bottom:6px;">Biografía profesional</label>
+          {{ doctor_form.biografia }}
+        </div>
+      {% endif %}
+
+      <div style="grid-column:1 / -1;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn primary" type="submit">Guardar cambios</button>
+        <a class="btn" href="{% url 'portal_dashboard' %}">Volver</a>
+      </div>
+    </form>
+
+    <style>
+      input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;outline:none;}
+      textarea{min-height:44px}
+      input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,77,97,.10)}
+    </style>
+  </div>
+{% endblock %}

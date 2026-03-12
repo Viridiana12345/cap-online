@@ -1,0 +1,73 @@
+{% extends "portal/base.html" %}
+
+{% block title %}RH | Nuevo Doctor{% endblock %}
+{% block page_title %}RH - Alta de Doctor{% endblock %}
+
+{% block content %}
+  <div class="card" style="max-width:860px;">
+    <p class="muted" style="margin-bottom:14px;">Este formulario crea un <b>usuario</b> y su <b>perfil de doctor</b> en la base de datos.</p>
+
+    <form method="post" enctype="multipart/form-data" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+      {% csrf_token %}
+
+      <div>
+        <label style="font-weight:900;">Nombre</label>
+        {{ form.first_name }}
+        {% for e in form.first_name.errors %}<div style="color:#c53030; font-size:13px;">{{ e }}</div>{% endfor %}
+      </div>
+      <div>
+        <label style="font-weight:900;">Apellidos</label>
+        {{ form.last_name }}
+        {% for e in form.last_name.errors %}<div style="color:#c53030; font-size:13px;">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div>
+        <label style="font-weight:900;">Correo (será su usuario)</label>
+        {{ form.email }}
+        {% for e in form.email.errors %}<div style="color:#c53030; font-size:13px;">{{ e }}</div>{% endfor %}
+      </div>
+      <div>
+        <label style="font-weight:900;">Especialidad</label>
+        {{ form.especialidad }}
+      </div>
+
+      <div>
+        <label style="font-weight:900;">Contraseña</label>
+        {{ form.password }}
+        {% for e in form.password.errors %}<div style="color:#c53030; font-size:13px;">{{ e }}</div>{% endfor %}
+      </div>
+      <div>
+        <label style="font-weight:900;">Confirmar contraseña</label>
+        {{ form.password2 }}
+        {% for e in form.password2.errors %}<div style="color:#c53030; font-size:13px;">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div>
+        <label style="font-weight:900;">Cédula</label>
+        {{ form.cedula }}
+      </div>
+      <div>
+        <label style="font-weight:900;">Años de experiencia</label>
+        {{ form.experiencia_anios }}
+      </div>
+
+      <div style="grid-column:1 / -1;">
+        <label style="font-weight:900;">Biografía</label>
+        {{ form.biografia }}
+      </div>
+
+      <div>
+        <label style="font-weight:900;">Foto</label>
+        {{ form.foto }}
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding-top:28px;">
+        {{ form.activo }} <span style="font-weight:900;">Activo</span>
+      </div>
+
+      <div style="grid-column:1 / -1; display:flex; gap:10px; margin-top:10px;">
+        <button class="btn primary" type="submit">Guardar</button>
+        <a class="btn" href="{% url 'doctor_list' %}">Volver</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "portal/base.html" %}
+
+{% block title %}RH | Doctores{% endblock %}
+{% block page_title %}RH - Doctores{% endblock %}
+
+{% block content %}
+  <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;">
+    <div>
+      <div style="font-weight:900;">Administración de doctores</div>
+      <div class="muted" style="margin-top:4px;">Aquí das de alta doctores reales en tu base de datos.</div>
+    </div>
+    <a class="btn primary" href="{% url 'doctor_create' %}">+ Nuevo doctor</a>
+  </div>
+
+  <div class="card">
+    {% for d in doctores %}
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; border:1px solid var(--border); border-radius:12px; margin-bottom:10px;">
+        <div>
+          <div style="font-weight:900;">{{ d.user.get_full_name|default:d.user.username }}</div>
+          <div class="muted">{{ d.user.username }} · {{ d.especialidad|default:"" }} · {{ d.experiencia_anios }} años</div>
+        </div>
+        <div class="muted">{% if d.activo %}Activo{% else %}Inactivo{% endif %}</div>
+      </div>
+    {% empty %}
+      <p class="muted">Aún no hay doctores registrados.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

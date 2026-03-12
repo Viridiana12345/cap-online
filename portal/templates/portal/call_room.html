@@ -1,0 +1,155 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Sala de llamada | Portal{% endblock %}
+{% block page_title %}Sala de llamada{% endblock %}
+
+{% block content %}
+  <div class="card" style="margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <h3 style="margin-bottom:6px;">{{ call.get_call_type_display }} — Sala #{{ call.id }}</h3>
+        <div class="muted">
+          {% if is_doctor %}
+            Paciente: {{ call.user.get_full_name|default:call.user.username }}
+          {% else %}
+            Doctor: {{ call.doctor.get_full_name|default:call.doctor.username }}
+          {% endif %}
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn primary" id="startBtn">Iniciar</button>
+        <button class="btn" id="hangBtn" disabled>Colgar</button>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:10px;">Esto usa WebRTC con una señalización sencilla (polling). Para pruebas locales, abre la sala en dos navegadores / modo incógnito.</p>
+  </div>
+
+  <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div>
+      <div style="font-weight:900;margin-bottom:8px;">Tu cámara</div>
+      <video id="local" autoplay playsinline muted style="width:100%;border-radius:12px;border:1px solid var(--border);background:#000;min-height:260px;"></video>
+    </div>
+    <div>
+      <div style="font-weight:900;margin-bottom:8px;">Remoto</div>
+      <video id="remote" autoplay playsinline style="width:100%;border-radius:12px;border:1px solid var(--border);background:#000;min-height:260px;"></video>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const roomKey = "{{ room_key }}";
+      const meId = {{ request.user.id }};
+      const callType = "{{ call.call_type }}";
+      const startBtn = document.getElementById('startBtn');
+      const hangBtn = document.getElementById('hangBtn');
+      const localVideo = document.getElementById('local');
+      const remoteVideo = document.getElementById('remote');
+
+      let pc = null;
+      let localStream = null;
+      let lastSignalId = 0;
+
+      function csrfToken(){
+        const el = document.querySelector('input[name=csrfmiddlewaretoken]');
+        return el ? el.value : '';
+      }
+
+      async function apiPull(){
+        const r = await fetch(`{% url 'call_signals_pull' room_key %}?after=${lastSignalId}`);
+        if(!r.ok) return [];
+        const j = await r.json();
+        return j.signals || [];
+      }
+
+      async function apiPush(payload){
+        await fetch(`{% url 'call_signals_push' room_key %}`,
+          { method:'POST', body: JSON.stringify(payload), headers: { 'Content-Type':'application/json', 'X-CSRFToken': csrfToken() } }
+        );
+      }
+
+      function ensurePc(){
+        if(pc) return pc;
+        pc = new RTCPeerConnection({ iceServers: [ { urls: 'stun:stun.l.google.com:19302' } ] });
+        pc.onicecandidate = (e) => {
+          if(e.candidate){ apiPush({ type:'ice', candidate: e.candidate }); }
+        };
+        pc.ontrack = (e) => {
+          remoteVideo.srcObject = e.streams[0];
+        };
+        return pc;
+      }
+
+      async function start(){
+        startBtn.disabled = true;
+        hangBtn.disabled = false;
+
+        const constraints = callType === 'video' ? { video:true, audio:true } : { video:false, audio:true };
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        localVideo.srcObject = localStream;
+
+        const p = ensurePc();
+        localStream.getTracks().forEach(t => p.addTrack(t, localStream));
+
+        // crea oferta (si el otro ya creó una, nosotros contestamos)
+        const offer = await p.createOffer();
+        await p.setLocalDescription(offer);
+        await apiPush({ type:'offer', sdp: p.localDescription });
+      }
+
+      async function hang(){
+        hangBtn.disabled = true;
+        startBtn.disabled = false;
+        if(pc){ pc.close(); pc = null; }
+        if(localStream){ localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+        localVideo.srcObject = null;
+        remoteVideo.srcObject = null;
+      }
+
+      async function handleSignal(sig){
+        lastSignalId = sig.id;
+        const payload = sig.payload;
+        if(sig.sender_id === meId) return;
+
+        const p = ensurePc();
+
+        if(payload.type === 'offer'){
+          if(!localStream){
+            const constraints = callType === 'video' ? { video:true, audio:true } : { video:false, audio:true };
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            localVideo.srcObject = localStream;
+            localStream.getTracks().forEach(t => p.addTrack(t, localStream));
+          }
+          await p.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+          const answer = await p.createAnswer();
+          await p.setLocalDescription(answer);
+          await apiPush({ type:'answer', sdp: p.localDescription });
+        }
+
+        if(payload.type === 'answer'){
+          await p.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        }
+
+        if(payload.type === 'ice' && payload.candidate){
+          try{ await p.addIceCandidate(new RTCIceCandidate(payload.candidate)); }catch(e){}
+        }
+      }
+
+      async function loop(){
+        try{
+          const list = await apiPull();
+          for(const s of list){ await handleSignal(s); }
+        }catch(e){}
+        setTimeout(loop, 1200);
+      }
+
+      startBtn.addEventListener('click', () => start().catch(() => { startBtn.disabled = false; }));
+      hangBtn.addEventListener('click', () => hang());
+
+      // Arranca polling
+      loop();
+    })();
+  </script>
+
+  <!-- csrf token para JS -->
+  <form style="display:none;">{% csrf_token %}</form>
+{% endblock %}

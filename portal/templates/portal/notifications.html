@@ -1,0 +1,359 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Notificaciones | Portal{% endblock %}
+{% block page_title %}Notificaciones{% endblock %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap');
+
+  /* ── SUMMARY BAR ── */
+  .notif-summary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 60%, var(--accent) 100%);
+    border-radius: var(--radius);
+    padding: 22px 32px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: notifUp .45s ease both;
+  }
+  .notif-summary::before {
+    content: ''; position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); pointer-events: none;
+  }
+  .notif-summary::after {
+    content: ''; position: absolute; bottom: -30px; right: 140px;
+    width: 110px; height: 110px; border-radius: 50%;
+    background: rgba(255,255,255,0.04); pointer-events: none;
+  }
+  .notif-summary-item {
+    position: relative; z-index: 2;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .notif-summary-item + .notif-summary-item::before {
+    content: '';
+    position: absolute; left: -16px; top: 50%; transform: translateY(-50%);
+    width: 1px; height: 28px; background: rgba(255,255,255,0.22);
+  }
+  .notif-summary-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; font-weight: 700;
+    line-height: 1; letter-spacing: -1px;
+  }
+  .notif-summary-meta { display: flex; flex-direction: column; }
+  .notif-summary-label {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: rgba(255,255,255,0.55);
+    margin-bottom: 1px;
+  }
+  .notif-summary-desc { font-size: 12px; color: rgba(255,255,255,0.8); }
+
+  .notif-live-pill {
+    margin-left: auto; position: relative; z-index: 2;
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px; padding: 5px 14px;
+    font-size: 11px; font-weight: 500;
+  }
+  .notif-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #6EE7B7; animation: notifPulse 2.2s infinite;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .notif-section-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .notif-section-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .notif-section-icon.msgs  { background: #e6f0f3; }
+  .notif-section-icon.calls { background: #FEF3C7; }
+  .notif-section-icon.appts { background: #D1FAE5; }
+
+  .notif-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px; font-weight: 700;
+    color: var(--text); letter-spacing: -.2px;
+  }
+  .notif-section-badge {
+    margin-left: auto;
+    background: var(--primary);
+    color: #fff;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: .8px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 100px;
+  }
+  .notif-section-badge.yellow { background: #B45309; }
+  .notif-section-badge.green  { background: #059669; }
+
+  /* ── CARD BLOCK ── */
+  .notif-block {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.04);
+    animation: notifUp .45s ease both;
+  }
+  .notif-block:nth-child(2) { animation-delay: .08s; }
+  .notif-block:nth-child(3) { animation-delay: .14s; }
+
+  /* ── MESSAGE ITEM ── */
+  .notif-msg-item {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: #f6fbff;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .notif-msg-item:hover { transform: translateX(3px); box-shadow: 0 4px 18px rgba(0,0,0,.07); }
+  .notif-msg-sender {
+    font-weight: 700; font-size: 14px; color: var(--text);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .notif-msg-sender::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--primary); flex-shrink: 0;
+  }
+  .notif-msg-date {
+    font-size: 11px; color: var(--muted); margin: 4px 0 7px;
+  }
+  .notif-msg-text { font-size: 13.5px; color: var(--text); line-height: 1.6; }
+
+  /* ── CALL / APPT ITEM ── */
+  .notif-call-item,
+  .notif-appt-item {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .notif-call-item { border-left: 4px solid #B45309; background: #FFFBEB; }
+  .notif-appt-item { border-left: 4px solid #059669; background: #F0FDF4; }
+  .notif-call-item:hover,
+  .notif-appt-item:hover { transform: translateX(3px); box-shadow: 0 4px 18px rgba(0,0,0,.07); }
+
+  .notif-item-title {
+    font-weight: 700; font-size: 14px; color: var(--text);
+  }
+  .notif-item-meta {
+    font-size: 12px; color: var(--muted);
+  }
+  .notif-item-notes {
+    font-family: 'Playfair Display', serif;
+    font-style: italic; font-size: 13px;
+    color: var(--text); margin-top: 4px; line-height: 1.55;
+  }
+
+  /* STATUS CHIP */
+  .notif-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 100px;
+    font-size: 10.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .8px;
+  }
+  .chip-pending  { background: #FEF3C7; color: #92400E; }
+  .chip-approved { background: #D1FAE5; color: #065F46; }
+  .chip-rejected { background: #FEE2E2; color: #991B1B; }
+
+  /* ── BUTTONS ── */
+  .notif-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ── EMPTY STATE ── */
+  .notif-empty {
+    padding: 28px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13.5px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .notif-empty-icon {
+    font-size: 30px; opacity: .45;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes notifUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes notifPulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.5; transform:scale(1.4); }
+  }
+</style>
+
+<!-- ══════════════════════════════════════
+     SUMMARY BAR
+══════════════════════════════════════ -->
+<div class="notif-summary">
+  <div class="notif-summary-item">
+    <div class="notif-summary-num">{{ unread_messages|length }}</div>
+    <div class="notif-summary-meta">
+      <span class="notif-summary-label">Mensajes</span>
+      <span class="notif-summary-desc">sin leer</span>
+    </div>
+  </div>
+  <div class="notif-summary-item">
+    <div class="notif-summary-num">{{ call_requests|length }}</div>
+    <div class="notif-summary-meta">
+      <span class="notif-summary-label">Llamadas</span>
+      <span class="notif-summary-desc">pendientes</span>
+    </div>
+  </div>
+  <div class="notif-summary-item">
+    <div class="notif-summary-num">{{ appointments|length }}</div>
+    <div class="notif-summary-meta">
+      <span class="notif-summary-label">Citas</span>
+      <span class="notif-summary-desc">en agenda</span>
+    </div>
+  </div>
+  <div class="notif-live-pill">
+    <div class="notif-dot"></div>
+    Actualizado en tiempo real
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     MENSAJES SIN LEER
+══════════════════════════════════════ -->
+<div class="notif-block">
+  <div class="notif-section-head">
+    <div class="notif-section-icon msgs">✉️</div>
+    <div class="notif-section-title">Mensajes sin leer</div>
+    <span class="notif-section-badge">{{ unread_messages|length }}</span>
+  </div>
+
+  {% for m in unread_messages %}
+    <div class="notif-msg-item">
+      <div class="notif-msg-sender">{{ m.sender.get_full_name|default:m.sender.username }}</div>
+      <div class="notif-msg-date">{{ m.created_at|date:"d M Y · H:i" }}</div>
+      <div class="notif-msg-text">{{ m.text }}</div>
+      <div class="notif-actions">
+        <a class="btn primary" href="{% url 'portal_chat_with' m.sender.id %}">Abrir chat</a>
+      </div>
+    </div>
+  {% empty %}
+    <div class="notif-empty">
+      <div class="notif-empty-icon">📭</div>
+      No tienes mensajes sin leer.
+    </div>
+  {% endfor %}
+</div>
+
+
+<!-- ══════════════════════════════════════
+     SOLICITUDES DE LLAMADA
+══════════════════════════════════════ -->
+<div class="notif-block">
+  <div class="notif-section-head">
+    <div class="notif-section-icon calls">📞</div>
+    <div class="notif-section-title">Solicitudes de llamada</div>
+    <span class="notif-section-badge yellow">{{ call_requests|length }}</span>
+  </div>
+
+  {% for c in call_requests %}
+    <div class="notif-call-item">
+      <div class="notif-item-title">
+        {{ c.get_call_type_display }}
+        <span class="notif-chip {% if c.status == 'pending' %}chip-pending{% elif c.status == 'approved' %}chip-approved{% else %}chip-rejected{% endif %}">
+          {{ c.get_status_display }}
+        </span>
+      </div>
+
+      {% if is_doctor %}
+        <div class="notif-item-meta">Paciente: {{ c.user.get_full_name|default:c.user.username }}</div>
+      {% else %}
+        {% if c.doctor %}<div class="notif-item-meta">Doctor: {{ c.doctor.get_full_name|default:c.doctor.username }}</div>{% endif %}
+      {% endif %}
+
+      {% if c.scheduled_for %}
+        <div class="notif-item-meta">🗓 Programada: {{ c.scheduled_for|date:"d M Y · H:i" }}</div>
+      {% endif %}
+
+      {% if c.notes %}
+        <div class="notif-item-notes">{{ c.notes }}</div>
+      {% endif %}
+
+      {% if is_doctor and c.status == 'pending' %}
+        <div class="notif-actions">
+          <form method="post" action="{% url 'call_update_status' c.id 'approved' %}">{% csrf_token %}<button class="btn primary" type="submit">Aprobar</button></form>
+          <form method="post" action="{% url 'call_update_status' c.id 'rejected' %}">{% csrf_token %}<button class="btn" type="submit">Rechazar</button></form>
+        </div>
+      {% endif %}
+
+      {% if c.status == 'approved' %}
+        <div class="notif-actions">
+          <a class="btn primary" href="{% url 'call_room' c.id %}">Entrar a sala</a>
+        </div>
+      {% endif %}
+    </div>
+  {% empty %}
+    <div class="notif-empty">
+      <div class="notif-empty-icon">📵</div>
+      Aún no tienes solicitudes.
+    </div>
+  {% endfor %}
+</div>
+
+
+<!-- ══════════════════════════════════════
+     CITAS
+══════════════════════════════════════ -->
+<div class="notif-block">
+  <div class="notif-section-head">
+    <div class="notif-section-icon appts">📅</div>
+    <div class="notif-section-title">Citas</div>
+    <span class="notif-section-badge green">{{ appointments|length }}</span>
+  </div>
+
+  {% for a in appointments %}
+    <div class="notif-appt-item">
+      <div class="notif-item-title">
+        {{ a.start_at|date:"d M Y · H:i" }} – {{ a.end_at|date:"H:i" }}
+        <span class="notif-chip {% if a.status == 'pending' %}chip-pending{% elif a.status == 'approved' %}chip-approved{% else %}chip-rejected{% endif %}">
+          {{ a.get_status_display }}
+        </span>
+      </div>
+
+      {% if is_doctor %}
+        <div class="notif-item-meta">Paciente: {{ a.patient.get_full_name|default:a.patient.username }}</div>
+        {% if a.status == 'pending' %}
+          <div class="notif-actions">
+            <form method="post" action="{% url 'appointment_update_status' a.id 'approved' %}">{% csrf_token %}<button class="btn primary" type="submit">Aprobar</button></form>
+            <form method="post" action="{% url 'appointment_update_status' a.id 'rejected' %}">{% csrf_token %}<button class="btn" type="submit">Rechazar</button></form>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="notif-item-meta">Doctor: {{ a.doctor.get_full_name|default:a.doctor.username }}</div>
+      {% endif %}
+
+      {% if a.notes %}
+        <div class="notif-item-notes">{{ a.notes }}</div>
+      {% endif %}
+    </div>
+  {% empty %}
+    <div class="notif-empty">
+      <div class="notif-empty-icon">📆</div>
+      Aún no tienes citas.
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}
