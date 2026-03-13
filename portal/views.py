@@ -6,6 +6,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
+from django.contrib.auth.models import User
+from django.http import HttpResponse
 
 from .models import ChatMessage, CallRequest, DoctorProfile, PatientProfile, Appointment, CallSignal
 from .forms import (
@@ -605,4 +607,15 @@ def doctor_create(request):
         form = DoctorCreateForm()
 
     ctx = {"notifications_count": _notifications_count(request.user), "form": form}
+    
     return render(request, "portal/rh/doctor_create.html", ctx)
+    
+def crear_admin(request):
+    if not User.objects.filter(username="admin").exists():
+        User.objects.create_superuser(
+            username="admin",
+            email="admin@cap.com",
+            password="Admin12345!"
+        )
+        return HttpResponse("Admin creado correctamente")
+    return HttpResponse("El admin ya existe")
