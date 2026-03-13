@@ -35,7 +35,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "http://10.36.189.42:8000",
-    "https://*.onrender.com",
+    "https://cap-online.onrender.com",
 ]
 
 if RENDER_EXTERNAL_HOSTNAME:
